@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/x-icon" href="https://graph.facebook.com/sanvito.omegna/picture?type=large">
     <title>Banco di Beneficenza 2026 - San Vito Omegna</title>
+    <link rel="icon" type="image/x-icon" href="https://graph.facebook.com/sanvito.omegna/picture?type=large">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -127,7 +127,7 @@
         
         .badge { display: inline-flex; align-items: center; padding: 0.25rem 0.75rem; border-radius: 50px; font-size: 0.85rem; font-weight: 600; box-sizing: border-box; justify-content: center; width: 100%; }
         .badge.success { background-color: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
-        .badge.warning { background-color: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
+        .badge.warning { background-color: #fffbeb; color: #92400e; border: 1px solid #fde68a; padding: 0.4rem 0.75rem; }
         
         .btn {
             display: inline-flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.9rem;
@@ -167,7 +167,9 @@
         .admin-box { background: #f8fafc; border: 1px solid var(--border); padding: 1.75rem; border-radius: var(--radius-md); margin-bottom: 2rem; }
         .admin-table { width: 100%; border-collapse: collapse; text-align: left; }
         .admin-table th, .admin-table td { padding: 1rem; border-bottom: 1px solid var(--border); vertical-align: top; }
-        .admin-table input, .admin-table select { padding: 0.4rem; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; width: 95%; box-sizing: border-box; }
+        .admin-table input, .admin-table select { padding: 0.4rem; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; width: 95%; box-sizing: border-box; margin-bottom: 4px; }
+        .admin-table tr.row-selezionato-postazione { background: #f1f5f9; font-weight: bold; }
+        .admin-table tr.row-selezionato-postazione td { color: var(--primary); font-size: 0.95rem; padding: 0.6rem 1rem; border-bottom: 2px solid var(--accent); }
         .loading { text-align: center; color: var(--text-muted); font-weight: 500; padding: 2rem; }
         .table-responsive { overflow-x: auto; border-radius: var(--radius-md); border: 1px solid var(--border); }
 
@@ -194,8 +196,9 @@
             .print-slots-container { display: table; width: 100%; table-layout: fixed; border-collapse: collapse; }
             .print-slot { display: table-cell; border: 1px solid #cbd5e1; padding: 15px 10px; text-align: center; background: white !important; vertical-align: top; }
             .print-time { font-size: 13pt; font-weight: bold; color: #0a2540 !important; margin-bottom: 8px; border-bottom: 1px dashed #cbd5e1; padding-bottom: 4px; }
-            .print-name { font-size: 11pt; font-weight: 600; color: #000 !important; min-height: 18px; margin-bottom: 4px; }
-            .print-empty { color: #cbd5e1 !important; font-style: italic; font-size: 10pt; }
+            .print-name { font-size: 11pt; font-weight: 600; color: #000 !important; min-height: 18px; margin-bottom: 2px; }
+            .print-tel { font-size: 9pt; color: #475569 !important; margin-bottom: 4px; }
+            .print-empty { color: #cbd5e1 !important; font-style: italic; font-size: 10pt; line-height: 30px; }
         }
     </style>
 </head>
@@ -287,11 +290,10 @@
                 <table class="admin-table">
                     <thead>
                         <tr>
-                            <th>Orario</th>
-                            <th>Postazione / Servizio</th>
-                            <th>Primo Volontario</th>
-                            <th>Secondo Volontario</th>
-                            <th>Azione Slot</th>
+                            <th style="width: 15%;">Orario</th>
+                            <th style="width: 32%;">Primo Volontario (Nome & Tel)</th>
+                            <th style="width: 32%;">Secondo Volontario (Nome & Tel)</th>
+                            <th style="width: 21%;">Azione Slot</th>
                         </tr>
                     </thead>
                     <tbody id="tbody-turni-admin"></tbody>
@@ -313,17 +315,17 @@
         <input type="hidden" id="modal-posizione-assegnata">
         
         <div class="form-group">
-            <label for="vol-nome">Nome e Cognome</label>
+            <label for="vol-nome">Nome e Cognome *</label>
             <input type="text" id="vol-nome" placeholder="Es. Mario Rossi">
         </div>
         <div class="form-group">
-            <label for="vol-telefono">Numero di Telefono (sarà visibile solo all'Organizzatore)</label>
+            <label for="vol-telefono">Numero di Telefono *</label>
             <input type="tel" id="vol-telefono" placeholder="Es. 340 1234567">
         </div>
         
         <div class="form-checkbox">
             <input type="checkbox" id="vol-privacy">
-            <label for="vol-privacy">Acconsento al trattamento dei miei dati personali ai soli fini dell'organizzazione dei turni per il Banco di Beneficienza.</label>
+            <label for="vol-privacy">Acconsento al trattamento dei miei dati personali ai soli fini dell'organizzazione del turno per il Banco di San Vito. *</label>
         </div>
 
         <button class="btn btn-primary" style="width: 100%; margin-top: 0.5rem; padding: 0.75rem;" onclick="salvaIscrizioneVolontario()">Conferma Iscrizione</button>
@@ -430,7 +432,7 @@
         const postazioniPrefissate = ["Postazione 1", "Postazione 2", "Postazione 3"];
 
         postazioniPrefissate.forEach(pName => {
-            const turniDiQuestaPostazione = turniDelGiorno.filter(t => t.postazione === pName);
+            const turniDiQuestaPostazione = turniDelGiorno.filter(t => t.giorno === currentSelectedDay && t.postazione === pName);
             
             if(turniDiQuestaPostazione.length > 0) {
                 let pGroup = document.createElement('div');
@@ -448,25 +450,31 @@
                     let slot = document.createElement('div');
                     slot.className = 'orario-slot';
 
-                    let b1 = t.volontario ? `<span class="badge warning">👤 ${t.volontario}</span>` : '<span class="badge success">🟢 Disponibile</span>';
+                    let b1 = '';
+                    if (t.volontario && t.volontario.trim() !== "") {
+                        b1 = `<span class="badge warning">👤 ${t.volontario}</span>`;
+                    } else {
+                        b1 = '<span class="badge success">🟢 Disponibile</span>';
+                    }
                     
                     let b2 = '';
-                    if (t.note2 === 'DISABILITATO') {
+                    if (t.volontario2 === 'DISABILITATO') {
                         b2 = ''; 
+                    } else if (t.volontario2 && t.volontario2.trim() !== "") {
+                        b2 = `<span class="badge warning">👤 ${t.volontario2}</span>`;
                     } else {
-                        b2 = t.volontario2 ? `<span class="badge warning">👤 ${t.volontario2}</span>` : '<span class="badge success">🟢 Disponibile</span>';
+                        b2 = '<span class="badge success">🟢 Disponibile</span>';
                     }
                     
                     let haPostiLiberi = false;
-                    if (!t.volontario) {
+                    if (!t.volontario || t.volontario.trim() === "") {
                         haPostiLiberi = true;
-                    } else if (!t.volontario2 && t.note2 !== 'DISABILITATO') {
+                    } else if ((!t.volontario2 || t.volontario2.trim() === "") && t.volontario2 !== 'DISABILITATO') {
                         haPostiLiberi = true;
                     }
                     
                     let azioneBtn = haPostiLiberi ? 
-                        `<button class="btn btn-accent" style="margin-top:0.75rem;" onclick="apriModaleIscrizione(${t.id})">Iscriviti</button>` :
-                        '<span style="color:var(--text-muted); font-size:0.85rem; font-weight:600; margin-top:0.75rem; background:#f1f5f9; padding:4px 12px; border-radius:20px;">Completo 👥</span>';
+                        `<button class="btn btn-accent" style="margin-top:0.75rem;" onclick="apriModaleIscrizione(${t.id})">Iscriviti</button>` : '';
 
                     slot.innerHTML = `
                         <div class="slot-time">${t.orario}</div>
@@ -491,7 +499,7 @@
         document.getElementById('modal-info-turno').innerText = `${turno.giorno} • ${turno.postazione} • Ore ${turno.orario}`;
         
         let posAssegnata = "1";
-        if (turno.volontario) {
+        if (turno.volontario && turno.volontario.trim() !== "") {
             posAssegnata = "2";
         }
         document.getElementById('modal-posizione-assegnata').value = posAssegnata;
@@ -516,13 +524,18 @@
         if(!nome || !tel) { alert('Attenzione: Nome, Cognome e Telefono sono obbligatori.'); return; }
         if(!privacySpuntata) { alert('Attenzione: È necessario accettare il trattamento dei dati personali per confermare l\'iscrizione.'); return; }
 
-        const noteContatto = `Tel: ${tel}`;
         let updateData = {};
 
         if(postoScelto === "1") {
-            updateData = { volontario: nome, note: noteContatto };
+            updateData = { 
+                volontario: nome,
+                note: tel
+            };
         } else {
-            updateData = { volontario2: nome, note2: noteContatto };
+            updateData = { 
+                volontario2: nome,
+                note2: tel
+            };
         }
 
         const { error } = await _supabase
@@ -530,7 +543,11 @@
             .update(updateData)
             .eq('id', id);
 
-        if (error) { alert("Impossibile salvare l'iscrizione. Riprova."); return; }
+        if (error) { 
+            console.error("Errore Supabase:", error);
+            alert("Errore durante il salvataggio. Assicurati che le colonne 'volontario2' e 'note2' siano scritte in minuscolo nel database."); 
+            return; 
+        }
 
         alert('Grazie mille per il tuo prezioso aiuto al Banco di San Vito!');
         chiudiModale();
@@ -558,56 +575,71 @@
     function renderAdminView() {
         const tbody = document.getElementById('tbody-turni-admin');
         tbody.innerHTML = '';
+        
         const turniDelGiorno = tuttiITurni.filter(t => t.giorno === currentSelectedDay);
+        const postazioniPrefissate = ["Postazione 1", "Postazione 2", "Postazione 3"];
 
-        turniDelGiorno.forEach(t => {
-            let tr = document.createElement('tr');
-            let selectHtml = `
-                <select onchange="aggiornaDatoTurno(${t.id}, 'postazione', this.value)">
-                    <option value="Postazione 1" ${t.postazione === 'Postazione 1' ? 'selected' : ''}>Postazione 1</option>
-                    <option value="Postazione 2" ${t.postazione === 'Postazione 2' ? 'selected' : ''}>Postazione 2</option>
-                    <option value="Postazione 3" ${t.postazione === 'Postazione 3' ? 'selected' : ''}>Postazione 3</option>
-                </select>
-            `;
+        if(turniDelGiorno.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding:2rem;">Nessun turno inserito per oggi.</td></tr>';
+            return;
+        }
 
-            let secondoPostoHtml = '';
-            let bottoneModificaPosto = '';
-
-            if (t.note2 === 'DISABILITATO') {
-                secondoPostoHtml = `<span style="color:var(--text-muted); font-style:italic; font-size:0.85rem;">Slot Eliminato (Basta 1 persona)</span>`;
-                bottoneModificaPosto = `<button class="btn btn-secondary" style="margin-top:4px; width:100%;" onclick="cambiaStatoSecondoPosto(${t.id}, 'ripristina')">Ripristina 2° Posto</button>`;
-            } else {
-                secondoPostoHtml = `
-                    <input type="text" value="${t.volontario2 || ''}" placeholder="Disponibile" onblur="aggiornaDatoTurno(${t.id}, 'volontario2', this.value)">
-                    <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">${t.note2 || ''}</div>
+        postazioniPrefissate.forEach(pName => {
+            const turniDiQuestaPostazione = turniDelGiorno.filter(t => t.postazione === pName);
+            
+            if(turniDiQuestaPostazione.length > 0) {
+                let rowSeparatore = document.createElement('tr');
+                rowSeparatore.className = 'row-selezionato-postazione';
+                rowSeparatore.innerHTML = `
+                    <td colspan="4">📍 ${pName.toUpperCase()}</td>
                 `;
-                if (!t.volontario2) {
-                    bottoneModificaPosto = `<button class="btn btn-secondary" style="margin-top:4px; width:100%; background:#fef2f2; color:#b91c1c;" onclick="cambiaStatoSecondoPosto(${t.id}, 'disabilita')">Rimuovi 2° Posto</button>`;
-                }
-            }
+                tbody.appendChild(rowSeparatore);
 
-            tr.innerHTML = `
-                <td><input type="text" value="${t.orario}" onblur="aggiornaDatoTurno(${t.id}, 'orario', this.value)"></td>
-                <td>${selectHtml}</td>
-                <td>
-                    <input type="text" value="${t.volontario || ''}" placeholder="Disponibile" onblur="aggiornaDatoTurno(${t.id}, 'volontario', this.value)">
-                    <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">${t.note || ''}</div>
-                </td>
-                <td>
-                    ${secondoPostoHtml}
-                </td>
-                <td>
-                    <button class="btn btn-danger" style="padding:0.3rem 0.6rem; font-size:0.8rem; width:100%;" onclick="eliminaTurno(${t.id})">Elimina Slot</button>
-                    ${bottoneModificaPosto}
-                </td>
-            `;
-            tbody.appendChild(tr);
+                turniDiQuestaPostazione.forEach(t => {
+                    let tr = document.createElement('tr');
+                    let secondoPostoHtml = '';
+                    let bottoneModificaPosto = '';
+
+                    if (t.volontario2 === 'DISABILITATO') {
+                        secondoPostoHtml = `<span style="color:var(--text-muted); font-style:italic; font-size:0.85rem;">Slot Eliminato (Basta 1 persona)</span>`;
+                        bottoneModificaPosto = `<button class="btn btn-secondary" style="margin-top:4px; width:100%;" onclick="cambiaStatoSecondoPosto(${t.id}, 'ripristina')">Ripristina 2° Posto</button>`;
+                    } else {
+                        secondoPostoHtml = `
+                            <input type="text" value="${t.volontario2 || ''}" placeholder="Nome Volontario 2" onblur="aggiornaDatoTurno(${t.id}, 'volontario2', this.value)">
+                            <input type="text" value="${t.note2 || ''}" placeholder="Telefono 2" onblur="aggiornaDatoTurno(${t.id}, 'note2', this.value)">
+                        `;
+                        if (!t.volontario2 || t.volontario2.trim() === "") {
+                            bottoneModificaPosto = `<button class="btn btn-secondary" style="margin-top:4px; width:100%; background:#fef2f2; color:#b91c1c;" onclick="cambiaStatoSecondoPosto(${t.id}, 'disabilita')">Rimuovi 2° Posto</button>`;
+                        }
+                    }
+
+                    tr.innerHTML = `
+                        <td><input type="text" value="${t.orario}" onblur="aggiornaDatoTurno(${t.id}, 'orario', this.value)"></td>
+                        <td>
+                            <input type="text" value="${t.volontario || ''}" placeholder="Nome Volontario 1" onblur="aggiornaDatoTurno(${t.id}, 'volontario', this.value)">
+                            <input type="text" value="${t.note || ''}" placeholder="Telefono 1" onblur="aggiornaDatoTurno(${t.id}, 'note', this.value)">
+                        </td>
+                        <td>
+                            ${secondoPostoHtml}
+                        </td>
+                        <td>
+                            <button class="btn btn-danger" style="padding:0.3rem 0.6rem; font-size:0.8rem; width:100%;" onclick="eliminaTurno(${t.id})">Elimina Slot</button>
+                            ${bottoneModificaPosto}
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
         });
     }
 
     async function cambiaStatoSecondoPosto(id, azione) {
-        let valoreNote2 = azione === 'disabilita' ? 'DISABILITATO' : '';
-        await _supabase.from('turni_banco').update({ volontario2: '', note2: valoreNote2 }).eq('id', id);
+        let valoreVolontario2 = azione === 'disabilita' ? 'DISABILITATO' : '';
+        let updateObj = { volontario2: valoreVolontario2 };
+        if(azione === 'disabilita') {
+            updateObj.note2 = ''; 
+        }
+        await _supabase.from('turni_banco').update(updateObj).eq('id', id);
         
         caricaDatiDalDatabase();
     }
@@ -615,9 +647,6 @@
     async function aggiornaDatoTurno(id, campo, valore) {
         let updateData = {};
         updateData[campo] = valore;
-        
-        if(campo === 'volontario' && valore === '') { updateData['note'] = ''; }
-        if(campo === 'volontario2' && valore === '') { updateData['note2'] = ''; }
 
         await _supabase.from('turni_banco').update(updateData).eq('id', id);
         
@@ -637,6 +666,32 @@
 
         if(!oraInizio || !oraFine) { alert('Scegli sia l\'orario di inizio che quello di fine.'); return; }
 
+        if(oraInizio >= oraFine) {
+            alert('Errore: L\'orario di inizio non può essere uguale o successivo all\'orario di fine turno.');
+            return;
+        }
+
+        let haSovrapposizioni = false;
+        const turniEsistenti = tuttiITurni.filter(t => t.giorno === giorno && t.postazione === postazione);
+
+        for (let turno of turniEsistenti) {
+            let parti = turno.orario.split(' - ');
+            if (parti.length === 2) {
+                let es_inizio = parti[0];
+                let es_fine = parti[1];
+
+                if (oraInizio < es_fine && oraFine > es_inizio) {
+                    haSovrapposizioni = true;
+                    break;
+                }
+            }
+        }
+
+        if (haSovrapposizioni) {
+            alert(`Impossibile inserire il turno!\nEsiste già una fascia oraria occupata o sovrapposta per ${postazione} in data ${giorno}. Controlla il tabellone sottostante.`);
+            return;
+        }
+
         const orarioFinale = `${oraInizio} - ${oraFine}`;
 
         const { error } = await _supabase
@@ -648,14 +703,14 @@
         caricaDatiDalDatabase();
     }
 
-    async function eliminaTurnoDalDb(id) {
+    async function dummyDelete(id) {
         await _supabase.from('turni_banco').delete().eq('id', id);
         caricaDatiDalDatabase();
     }
 
     function eliminaTurno(id) {
         if(confirm('Sei sicuro di voler cancellare interamente questo slot orario?')) {
-            eliminaTurnoDalDb(id);
+            dummyDelete(id);
         }
     }
 
@@ -696,11 +751,22 @@
                             let slotCell = document.createElement('div');
                             slotCell.className = 'print-slot';
                             
-                            let nome1 = t.volontario ? `<div class="print-name">👤 ${t.volontario}</div>` : `<div class="print-name print-empty">Disponibile</div>`;
+                            let nome1 = '';
+                            if (t.volontario && t.volontario.trim() !== "") {
+                                let tNote = t.note ? `<div class="print-tel">📞 ${t.note}</div>` : '';
+                                nome1 = `<div class="print-name">👤 ${t.volontario}</div>${tNote}`;
+                            } else {
+                                nome1 = `<div class="print-name print-empty">Disponibile</div>`;
+                            }
                             
                             let nome2 = '';
-                            if (t.note2 !== 'DISABILITATO') {
-                                nome2 = t.volontario2 ? `<div class="print-name">👤 ${t.volontario2}</div>` : `<div class="print-name print-empty">Disponibile</div>`;
+                            if (t.volontario2 === 'DISABILITATO') {
+                                nome2 = '';
+                            } else if (t.volontario2 && t.volontario2.trim() !== "") {
+                                let tNote2 = t.note2 ? `<div class="print-tel">📞 ${t.note2}</div>` : '';
+                                nome2 = `<div class="print-name" style="margin-top: 8px;">👤 ${t.volontario2}</div>${tNote2}`;
+                            } else {
+                                nome2 = `<div class="print-name print-empty" style="margin-top: 8px;">Disponibile</div>`;
                             }
 
                             slotCell.innerHTML = `
