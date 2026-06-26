@@ -173,6 +173,18 @@
         .loading { text-align: center; color: var(--text-muted); font-weight: 500; padding: 2rem; }
         .table-responsive { overflow-x: auto; border-radius: var(--radius-md); border: 1px solid var(--border); }
 
+        /* Evidenziazione blocco modifica turni */
+        .admin-warning-header {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            background: #fffbeb;
+            padding: 1.25rem 1.5rem;
+            border-radius: var(--radius-md);
+            border: 2px dashed var(--accent);
+        }
+
         @media print {
             body { background: white !important; color: black !important; font-size: 12pt; }
             header, .container, #sezione-volontari, #admin-login, #admin-panel, .modal, .btn, h2 {
@@ -254,6 +266,34 @@
                 </div>
             </div>
             
+            <!-- Tabella Modifica Rapida Turni (In evidenza ad alto contrasto) -->
+            <div class="admin-warning-header">
+                <h2 style="margin: 0; color: var(--primary);">Modifica Rapida Turni</h2>
+                <div style="font-size: 1.15rem; font-weight: 700; color: #b91c1c;">
+                    ⚠️ ATTENZIONE: Stai modificando il tabellone di 
+                    <span id="admin-current-day-label" style="background: var(--danger); color: white; padding: 0.25rem 0.75rem; border-radius: 8px; margin-left: 0.4rem; display: inline-block; box-shadow: var(--shadow);">
+                        Venerdì 21 Agosto
+                    </span>
+                </div>
+            </div>
+            
+            <div id="loading-admin" class="loading" style="display:none;">Salvataggio modifiche...</div>
+            
+            <div class="table-responsive" style="margin-bottom: 2.5rem;">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 15%;">Orario</th>
+                            <th style="width: 32%;">Primo Volontario (Nome & Tel)</th>
+                            <th style="width: 32%;">Secondo Volontario (Nome & Tel)</th>
+                            <th style="width: 21%;">Azione Slot</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody-turni-admin"></tbody>
+                </table>
+            </div>
+
+            <!-- Blocco Aggiungi Turno (Spostato in basso) -->
             <div class="admin-box">
                 <h3 style="margin-top:0; font-size: 1.1rem; color: var(--primary);">Aggiungi una nuova postazione/turno</h3>
                 <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem;">
@@ -282,23 +322,6 @@
                 </div>
                 <button class="btn btn-primary" style="margin-top: 0.5rem;" onclick="creaNuovoTurno()">Pubblica Turno sul Calendario</button>
             </div>
-
-            <h2>Modifica Rapida Turni (<span id="admin-current-day-label">21 Agosto</span>)</h2>
-            <div id="loading-admin" class="loading" style="display:none;">Salvataggio modifiche...</div>
-            
-            <div class="table-responsive">
-                <table class="admin-table">
-                    <thead>
-                        <tr>
-                            <th style="width: 15%;">Orario</th>
-                            <th style="width: 32%;">Primo Volontario (Nome & Tel)</th>
-                            <th style="width: 32%;">Secondo Volontario (Nome & Tel)</th>
-                            <th style="width: 21%;">Azione Slot</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tbody-turni-admin"></tbody>
-                </table>
-            </div>
         </div>
     </div>
 </div>
@@ -315,17 +338,17 @@
         <input type="hidden" id="modal-posizione-assegnata">
         
         <div class="form-group">
-            <label for="vol-nome">Nome e Cognome</label>
+            <label for="vol-nome">Nome e Cognome *</label>
             <input type="text" id="vol-nome" placeholder="Es. Mario Rossi">
         </div>
         <div class="form-group">
-            <label for="vol-telefono">Numero di Telefono</label>
+            <label for="vol-telefono">Numero di Telefono *</label>
             <input type="tel" id="vol-telefono" placeholder="Es. 340 1234567">
         </div>
         
         <div class="form-checkbox">
             <input type="checkbox" id="vol-privacy">
-            <label for="vol-privacy">Acconsento al trattamento dei miei dati personali ai soli fini dell'organizzazione del turno per il Banco di Beneficienza.</label>
+            <label for="vol-privacy">Acconsento al trattamento dei miei dati personali ai soli fini dell'organizzazione del turno per il Banco di San Vito. *</label>
         </div>
 
         <button class="btn btn-primary" style="width: 100%; margin-top: 0.5rem; padding: 0.75rem;" onclick="salvaIscrizioneVolontario()">Conferma Iscrizione</button>
@@ -387,9 +410,7 @@
         const mese = oggi.getMonth(); // 7 = Agosto
         const giornoDelMese = oggi.getDate();
 
-        // Controlla se siamo nell'anno della festa e nel mese di Agosto
         if (mese === 7) { 
-            // Cerca se il giorno del mese numerico corrisponde a uno dei giorni in listaGiorni
             const giornoTrovato = listaGiorni.find(g => g.includes(giornoDelMese.toString()));
             if (giornoTrovato) {
                 currentSelectedDay = giornoTrovato;
@@ -562,7 +583,7 @@
 
         if (error) { 
             console.error("Errore Supabase:", error);
-            alert("Errore durante il salvataggio. Assicurati che le colonne 'volontario2' e 'note2' siano scritte in minuscolo nel database."); 
+            alert("Errore durante il salvataggio."); 
             return; 
         }
 
@@ -657,7 +678,6 @@
             updateObj.note2 = ''; 
         }
         await _supabase.from('turni_banco').update(updateObj).eq('id', id);
-        
         caricaDatiDalDatabase();
     }
 
@@ -684,7 +704,7 @@
         if(!oraInizio || !oraFine) { alert('Scegli sia l\'orario di inizio che quello di fine.'); return; }
 
         if (oraInizio >= oraFine && oraFine !== "00:00") {
-            alert('Errore: L\'orario di inizio non può essere successivo all\'orario di fine turno, a meno che non termini a mezzanotte (00:00).');
+            alert('Errore: L\'orario di inizio non può essere successivo all\'orario di fine turno.');
             return;
         }
 
@@ -708,7 +728,7 @@
         }
 
         if (haSovrapposizioni) {
-            alert(`Impossibile inserire il turno!\nEsiste già una fascia oraria occupata o sovrapposta per ${postazione} in data ${giorno}. Controlla il tabellone sottostante.`);
+            alert(`Impossibile inserire il turno! Esiste una sovrapposizione.`);
             return;
         }
 
@@ -718,7 +738,7 @@
             .from('turni_banco')
             .insert([{ giorno, orario: orarioFinale, postazione, volontario: '', note: '', volontario2: '', note2: '' }]);
 
-        if(error) { alert("Errore di inserimento del turno nel database."); return; }
+        if(error) { alert("Errore di inserimento."); return; }
 
         caricaDatiDalDatabase();
     }
@@ -728,7 +748,7 @@
         caricaDatiDalDatabase();
     }
 
-    functionBox = function eliminaTurno(id) {
+    function eliminaTurno(id) {
         if(confirm('Sei sicuro di voler cancellare interamente questo slot orario?')) {
             dummyDelete(id);
         }
@@ -767,7 +787,7 @@
                         let slotsContainer = document.createElement('div');
                         slotsContainer.className = 'print-slots-container';
 
-                        turnionPostazione = turniPostazione.forEach(t => {
+                        turniPostazione.forEach(t => {
                             let slotCell = document.createElement('div');
                             slotCell.className = 'print-slot';
                             
